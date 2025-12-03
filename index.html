@@ -382,16 +382,6 @@
                     </div>
                     
                     <div class="form-group">
-                        <label for="combatDifficulty">Difficulty Band</label>
-                        <select id="combatDifficulty" onchange="updatePreview()">
-                            <option value="">Auto</option>
-                            <option value="easy">Easy</option>
-                            <option value="normal">Normal</option>
-                            <option value="hard">Hard</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
                         <label for="combatTier">Combat Tier</label>
                         <select id="combatTier" onchange="updatePreview()">
                             <option value="">Auto</option>
@@ -897,9 +887,6 @@
                 if (minEnemies) combatInfo.enemyCountMin = parseInt(minEnemies);
                 if (maxEnemies) combatInfo.enemyCountMax = parseInt(maxEnemies);
                 
-                const difficulty = document.getElementById('combatDifficulty').value;
-                if (difficulty) combatInfo.difficultyBand = difficulty;
-                
                 const tier = document.getElementById('combatTier').value;
                 if (tier) combatInfo.tier = parseInt(tier);
                 
@@ -1189,7 +1176,6 @@
                 }
                 if (ci.enemyCountMin) document.getElementById('combatEnemyMin').value = ci.enemyCountMin;
                 if (ci.enemyCountMax) document.getElementById('combatEnemyMax').value = ci.enemyCountMax;
-                if (ci.difficultyBand) document.getElementById('combatDifficulty').value = ci.difficultyBand;
                 if (ci.tier) document.getElementById('combatTier').value = ci.tier;
             }
             
