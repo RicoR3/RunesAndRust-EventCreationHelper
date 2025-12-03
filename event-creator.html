@@ -1,0 +1,1250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎲 Event Creation Helper - Runes & Rust</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            color: #e2e8f0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: #1e293b;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #475569 0%, #334155 100%);
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+        
+        .toolbar {
+            background: #334155;
+            padding: 15px 30px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            border-bottom: 2px solid #475569;
+            justify-content: space-between;
+        }
+        
+        .toolbar-left {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .toolbar-right {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+        
+        .btn-primary {
+            background: #64748b;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #475569;
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: #475569;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #64748b;
+        }
+        
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #059669;
+        }
+        
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+        
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+            min-height: calc(100vh - 200px);
+        }
+        
+        .form-panel {
+            padding: 30px;
+            overflow-y: auto;
+            max-height: calc(100vh - 200px);
+            background: #1e293b;
+        }
+        
+        .preview-panel {
+            padding: 30px;
+            background: #0f172a;
+            border-left: 2px solid #334155;
+            overflow-y: auto;
+            max-height: calc(100vh - 200px);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #cbd5e1;
+            font-size: 14px;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #334155;
+            border-radius: 6px;
+            background: #0f172a;
+            color: #e2e8f0;
+            font-size: 14px;
+            font-family: inherit;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #64748b;
+        }
+        
+        .form-group textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+        
+        .section-header {
+            background: #334155;
+            padding: 15px;
+            margin: 20px -30px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #cbd5e1;
+            border-left: 4px solid #64748b;
+        }
+        
+        .choice-item,
+        .outcome-item,
+        .reward-item,
+        .penalty-item,
+        .bonus-rule-item,
+        .status-effect-item {
+            background: #334155;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            position: relative;
+        }
+        
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #475569;
+        }
+        
+        .item-title {
+            font-weight: 600;
+            color: #94a3b8;
+        }
+        
+        .btn-sm {
+            padding: 5px 12px;
+            font-size: 12px;
+        }
+        
+        .add-button-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        pre {
+            background: #0f172a;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 13px;
+            line-height: 1.6;
+            border: 2px solid #334155;
+        }
+        
+        .preview-header {
+            margin-bottom: 20px;
+        }
+        
+        .preview-header h2 {
+            color: #cbd5e1;
+            margin-bottom: 10px;
+        }
+        
+        .copy-success {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #10b981;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            font-weight: 600;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            animation: slideIn 0.3s ease;
+            z-index: 1000;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        .inline-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        
+        .inline-group-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+        }
+        
+        .help-text {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-top: 5px;
+        }
+        
+        .nested-item {
+            margin-left: 20px;
+            padding-left: 15px;
+            border-left: 3px solid #475569;
+        }
+        
+        .validation-error {
+            background: #7f1d1d;
+            border: 2px solid #dc2626;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Event Creation Helper</h1>
+            <p>Create expedition events for Runes & Rust - No coding required!</p>
+        </div>
+        
+        <div class="toolbar">
+            <div class="toolbar-left">
+                <button class="btn btn-primary" onclick="loadTemplate('combat')">⚔️ Combat Template</button>
+                <button class="btn btn-primary" onclick="loadTemplate('choice')">🤔 Choice Template</button>
+                <button class="btn btn-primary" onclick="loadTemplate('shop')">🏪 Shop Template</button>
+            </div>
+            <div class="toolbar-right">
+                <button class="btn btn-secondary" onclick="importJSON()">📥 Import JSON</button>
+                <button class="btn btn-danger" onclick="clearForm()">🗑️ Clear Form</button>
+            </div>
+        </div>
+        
+        <div class="content">
+            <div class="form-panel">
+                <h2 style="margin-bottom: 20px;">Event Configuration</h2>
+                
+                <!-- Basic Event Properties -->
+                <div class="form-group">
+                    <label for="eventId">Event ID *</label>
+                    <input type="text" id="eventId" placeholder="e.g., camp-watch, disc-ruins" onchange="updatePreview()">
+                    <div class="help-text">Unique identifier (use lowercase with dashes)</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="eventType">Event Type *</label>
+                    <select id="eventType" onchange="updatePreview(); toggleCombatFields()">
+                        <option value="combat">combat - Fight enemies</option>
+                        <option value="camp">camp - Rest and recovery</option>
+                        <option value="shop">shop - Trading post</option>
+                        <option value="discovery">discovery - Finding something</option>
+                        <option value="psycho">psycho - Mental challenge</option>
+                        <option value="boss">boss - Boss encounter</option>
+                        <option value="bossfight">bossfight - Boss fight</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="eventTitle">Title *</label>
+                    <input type="text" id="eventTitle" placeholder="e.g., 🔥 Night Camp by the Path" onchange="updatePreview()">
+                    <div class="help-text">Add emoji at start for visual flavor</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="eventDescription">Description *</label>
+                    <textarea id="eventDescription" placeholder="Describe what the crew encounters..." onchange="updatePreview()"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="isSubEvent">Is Sub-Event?</label>
+                    <select id="isSubEvent" onchange="updatePreview()">
+                        <option value="false">No - Can appear randomly</option>
+                        <option value="true">Yes - Only via nextEventId</option>
+                    </select>
+                    <div class="help-text">Sub-events are only triggered by other events</div>
+                </div>
+                
+                <!-- Combat-specific Fields -->
+                <div id="combatFields" style="display: none;">
+                    <div class="section-header">⚔️ Combat Configuration</div>
+                    
+                    <div class="form-group">
+                        <label for="combatEnemyIds">Enemy IDs (comma-separated)</label>
+                        <input type="text" id="combatEnemyIds" placeholder="e.g., scavenger, goblin, wolf" onchange="updatePreview()">
+                        <div class="help-text">Leave empty for random selection</div>
+                    </div>
+                    
+                    <div class="inline-group">
+                        <div class="form-group">
+                            <label for="combatEnemyMin">Min Enemies</label>
+                            <input type="number" id="combatEnemyMin" min="1" onchange="updatePreview()">
+                        </div>
+                        <div class="form-group">
+                            <label for="combatEnemyMax">Max Enemies</label>
+                            <input type="number" id="combatEnemyMax" min="1" onchange="updatePreview()">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="combatDifficulty">Difficulty Band</label>
+                        <select id="combatDifficulty" onchange="updatePreview()">
+                            <option value="">Auto</option>
+                            <option value="easy">Easy</option>
+                            <option value="normal">Normal</option>
+                            <option value="hard">Hard</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="combatTier">Combat Tier</label>
+                        <select id="combatTier" onchange="updatePreview()">
+                            <option value="">Auto</option>
+                            <option value="1">Tier 1</option>
+                            <option value="2">Tier 2</option>
+                            <option value="3">Tier 3</option>
+                            <option value="4">Tier 4</option>
+                            <option value="5">Tier 5</option>
+                        </select>
+                    </div>
+                    
+                    <div class="section-header">🏆 Victory Rewards</div>
+                    <div id="victoryRewards"></div>
+                    <div class="add-button-container">
+                        <button class="btn btn-primary btn-sm" onclick="addVictoryReward()">+ Add Victory Reward</button>
+                    </div>
+                </div>
+                
+                <!-- Choices Section -->
+                <div class="section-header">🎯 Choices (for non-combat events)</div>
+                <div id="choices"></div>
+                <div class="add-button-container">
+                    <button class="btn btn-primary btn-sm" onclick="addChoice()">+ Add Choice</button>
+                </div>
+                
+                <!-- Simple Outcomes (for events without explicit choices) -->
+                <div class="section-header">🎲 Direct Outcomes (for simple events)</div>
+                <div class="help-text" style="margin-bottom: 15px;">Use this for events without player choices (automatic outcomes)</div>
+                <div id="simpleOutcomes"></div>
+                <div class="add-button-container">
+                    <button class="btn btn-primary btn-sm" onclick="addSimpleOutcome()">+ Add Outcome</button>
+                </div>
+            </div>
+            
+            <div class="preview-panel">
+                <div class="preview-header">
+                    <h2>JSON Preview</h2>
+                    <p style="color: #94a3b8;">Copy this into your events file</p>
+                </div>
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <button class="btn btn-success" onclick="copyJSON()" style="font-size: 16px; padding: 12px 30px;">📋 Copy JSON</button>
+                </div>
+                <pre id="jsonPreview">// Configure the event on the left to see the JSON output</pre>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data from core.ts
+        const EVENT_TYPES = ['combat', 'camp', 'shop', 'discovery', 'psycho', 'boss', 'bossfight'];
+        const CHOICE_KINDS = ['cautious', 'balanced', 'bold'];
+        const REWARD_TYPES = ['scrap', 'item', 'hp', 'sanity', 'natureSpirit', 'survivorDiscovery'];
+        const PENALTY_TYPES = ['hp', 'sanity', 'scrap'];
+        const BONUS_RULE_TYPES = ['hasItemId', 'hasItemType', 'hasFood', 'hasSanityAid', 'hasCrewTag'];
+        const ITEM_TYPES = ['weapon', 'food', 'tool', 'sanity', 'misc', 'trinket', 'material', 'trash'];
+        const CREW_TAGS = ['strong', 'swifty', 'wise', 'handy', 'lucky'];
+        
+        // Status effects from registry
+        const STATUS_EFFECTS = [
+            'bleeding', 'poisoned', 'ignited', 'disoriented', 'stunned', 'shocked',
+            'flashed', 'agitated', 'feared', 'chilled', 'hungry', 'undernourished',
+            'crippled', 'brokenLeg', 'weakened', 'exposed', 'fortified', 'empowered',
+            'ignorant', 'enlarged', 'immolated', 'delirious', 'vulnerable', 'berserk'
+        ];
+        
+        // Common item IDs (from your game)
+        const COMMON_ITEMS = [
+            'apple', 'banana', 'bread', 'healingPotion', 'pipe', 'bandage',
+            'woodClub', 'rustyKnife', 'bigWrench', 'gears', 'ironPlate', 'scrap'
+        ];
+        
+        let choiceCounter = 0;
+        let outcomeCounter = 0;
+        let rewardCounter = 0;
+        let penaltyCounter = 0;
+        let bonusRuleCounter = 0;
+        let statusEffectCounter = 0;
+        let victoryRewardCounter = 0;
+        
+        function toggleCombatFields() {
+            const type = document.getElementById('eventType').value;
+            document.getElementById('combatFields').style.display = 
+                type === 'combat' || type === 'boss' || type === 'bossfight' ? 'block' : 'none';
+        }
+        
+        function addChoice() {
+            const id = ++choiceCounter;
+            const html = `
+                <div class="choice-item" id="choice-${id}">
+                    <div class="item-header">
+                        <span class="item-title">Choice #${id}</span>
+                        <button class="btn btn-danger btn-sm" onclick="removeElement('choice-${id}')">Remove</button>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Choice ID *</label>
+                        <input type="text" id="choice-${id}-id" placeholder="e.g., scout, force, rest" onchange="updatePreview()">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Label *</label>
+                        <input type="text" id="choice-${id}-label" placeholder="e.g., Scout ahead" onchange="updatePreview()">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Kind</label>
+                        <select id="choice-${id}-kind" onchange="updatePreview()">
+                            <option value="">None</option>
+                            <option value="cautious">Cautious (safe)</option>
+                            <option value="balanced">Balanced</option>
+                            <option value="bold">Bold (risky)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea id="choice-${id}-description" placeholder="Explain the choice to players..." onchange="updatePreview()"></textarea>
+                    </div>
+                    
+                    <div class="nested-item">
+                        <h4 style="margin-bottom: 10px; color: #a5b4fc;">Bonus Rules</h4>
+                        <div id="choice-${id}-bonus-rules"></div>
+                        <button class="btn btn-secondary btn-sm" onclick="addBonusRule(${id})">+ Add Bonus Rule</button>
+                    </div>
+                    
+                    <div class="nested-item">
+                        <h4 style="margin-bottom: 10px; color: #a5b4fc;">Outcomes</h4>
+                        <div id="choice-${id}-outcomes"></div>
+                        <button class="btn btn-primary btn-sm" onclick="addOutcome(${id})">+ Add Outcome</button>
+                    </div>
+                </div>
+            `;
+            document.getElementById('choices').insertAdjacentHTML('beforeend', html);
+            updatePreview();
+        }
+        
+        function addBonusRule(choiceId) {
+            const id = ++bonusRuleCounter;
+            const html = `
+                <div class="bonus-rule-item" id="bonus-rule-${id}">
+                    <div class="item-header">
+                        <span class="item-title">Bonus Rule #${id}</span>
+                        <button class="btn btn-danger btn-sm" onclick="removeElement('bonus-rule-${id}')">Remove</button>
+                    </div>
+                    
+                    <div class="inline-group-3">
+                        <div class="form-group">
+                            <label>Type *</label>
+                            <select id="bonus-rule-${id}-type" onchange="updatePreview(); toggleBonusRuleValue(${id})">
+                                <option value="hasItemId">hasItemId</option>
+                                <option value="hasItemType">hasItemType</option>
+                                <option value="hasFood">hasFood</option>
+                                <option value="hasSanityAid">hasSanityAid</option>
+                                <option value="hasCrewTag">hasCrewTag</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group" id="bonus-rule-${id}-value-group">
+                            <label>Value</label>
+                            <input type="text" id="bonus-rule-${id}-value" placeholder="item ID / type / tag" onchange="updatePreview()">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Bonus Amount *</label>
+                            <input type="number" id="bonus-rule-${id}-amount" step="0.05" value="0.1" onchange="updatePreview()">
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.getElementById(`choice-${choiceId}-bonus-rules`).insertAdjacentHTML('beforeend', html);
+            updatePreview();
+        }
+        
+        function toggleBonusRuleValue(id) {
+            const type = document.getElementById(`bonus-rule-${id}-type`).value;
+            const needsValue = type === 'hasItemId' || type === 'hasItemType' || type === 'hasCrewTag';
+            document.getElementById(`bonus-rule-${id}-value-group`).style.display = needsValue ? 'block' : 'none';
+        }
+        
+        function addOutcome(choiceId) {
+            const id = ++outcomeCounter;
+            const html = `
+                <div class="outcome-item" id="outcome-${id}" data-choice="${choiceId}">
+                    <div class="item-header">
+                        <span class="item-title">Outcome #${id}</span>
+                        <button class="btn btn-danger btn-sm" onclick="removeElement('outcome-${id}')">Remove</button>
+                    </div>
+                    
+                    <div class="inline-group">
+                        <div class="form-group">
+                            <label>Success Rate * (0-1)</label>
+                            <input type="number" id="outcome-${id}-rate" step="0.05" min="0" max="1" value="0.5" onchange="updatePreview()">
+                        </div>
+                        <div class="form-group">
+                            <label>Next Event ID</label>
+                            <input type="text" id="outcome-${id}-next" placeholder="Optional chain" onchange="updatePreview()">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Result Text *</label>
+                        <textarea id="outcome-${id}-text" placeholder="Describe what happens..." onchange="updatePreview()"></textarea>
+                    </div>
+                    
+                    <div class="nested-item">
+                        <h4 style="margin-bottom: 10px; color: #10b981;">Rewards</h4>
+                        <div id="outcome-${id}-rewards"></div>
+                        <button class="btn btn-success btn-sm" onclick="addReward(${id})">+ Add Reward</button>
+                    </div>
+                    
+                    <div class="nested-item">
+                        <h4 style="margin-bottom: 10px; color: #ef4444;">Penalties</h4>
+                        <div id="outcome-${id}-penalties"></div>
+                        <button class="btn btn-danger btn-sm" onclick="addPenalty(${id})">+ Add Penalty</button>
+                    </div>
+                    
+                    <div class="nested-item">
+                        <h4 style="margin-bottom: 10px; color: #f59e0b;">Status Effects (Random Crew)</h4>
+                        <div id="outcome-${id}-status-random"></div>
+                        <button class="btn btn-secondary btn-sm" onclick="addStatusEffect(${id}, 'random')">+ Add Status (Random)</button>
+                    </div>
+                    
+                    <div class="nested-item">
+                        <h4 style="margin-bottom: 10px; color: #f59e0b;">Status Effects (All Crew)</h4>
+                        <div id="outcome-${id}-status-all"></div>
+                        <button class="btn btn-secondary btn-sm" onclick="addStatusEffect(${id}, 'all')">+ Add Status (All)</button>
+                    </div>
+                </div>
+            `;
+            document.getElementById(`choice-${choiceId}-outcomes`).insertAdjacentHTML('beforeend', html);
+            updatePreview();
+        }
+        
+        function addSimpleOutcome() {
+            const id = ++outcomeCounter;
+            const html = `
+                <div class="outcome-item" id="simple-outcome-${id}">
+                    <div class="item-header">
+                        <span class="item-title">Outcome #${id}</span>
+                        <button class="btn btn-danger btn-sm" onclick="removeElement('simple-outcome-${id}')">Remove</button>
+                    </div>
+                    
+                    <div class="inline-group">
+                        <div class="form-group">
+                            <label>Success Rate * (0-1)</label>
+                            <input type="number" id="simple-outcome-${id}-rate" step="0.05" min="0" max="1" value="0.5" onchange="updatePreview()">
+                        </div>
+                        <div class="form-group">
+                            <label>Next Event ID</label>
+                            <input type="text" id="simple-outcome-${id}-next" placeholder="Optional chain" onchange="updatePreview()">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Result Text *</label>
+                        <textarea id="simple-outcome-${id}-text" placeholder="Describe what happens..." onchange="updatePreview()"></textarea>
+                    </div>
+                    
+                    <div class="nested-item">
+                        <h4 style="margin-bottom: 10px; color: #10b981;">Rewards</h4>
+                        <div id="simple-outcome-${id}-rewards"></div>
+                        <button class="btn btn-success btn-sm" onclick="addReward(${id}, true)">+ Add Reward</button>
+                    </div>
+                    
+                    <div class="nested-item">
+                        <h4 style="margin-bottom: 10px; color: #ef4444;">Penalties</h4>
+                        <div id="simple-outcome-${id}-penalties"></div>
+                        <button class="btn btn-danger btn-sm" onclick="addPenalty(${id}, true)">+ Add Penalty</button>
+                    </div>
+                    
+                    <div class="nested-item">
+                        <h4 style="margin-bottom: 10px; color: #f59e0b;">Status Effects (Random Crew)</h4>
+                        <div id="simple-outcome-${id}-status-random"></div>
+                        <button class="btn btn-secondary btn-sm" onclick="addStatusEffect(${id}, 'random', true)">+ Add Status (Random)</button>
+                    </div>
+                    
+                    <div class="nested-item">
+                        <h4 style="margin-bottom: 10px; color: #f59e0b;">Status Effects (All Crew)</h4>
+                        <div id="simple-outcome-${id}-status-all"></div>
+                        <button class="btn btn-secondary btn-sm" onclick="addStatusEffect(${id}, 'all', true)">+ Add Status (All)</button>
+                    </div>
+                </div>
+            `;
+            document.getElementById('simpleOutcomes').insertAdjacentHTML('beforeend', html);
+            updatePreview();
+        }
+        
+        function addReward(outcomeId, isSimple = false) {
+            const id = ++rewardCounter;
+            const prefix = isSimple ? 'simple-outcome' : 'outcome';
+            const html = `
+                <div class="reward-item" id="reward-${id}">
+                    <div class="item-header">
+                        <span class="item-title">Reward #${id}</span>
+                        <button class="btn btn-danger btn-sm" onclick="removeElement('reward-${id}')">Remove</button>
+                    </div>
+                    
+                    <div class="inline-group">
+                        <div class="form-group">
+                            <label>Type *</label>
+                            <select id="reward-${id}-type" onchange="updatePreview(); toggleRewardFields(${id})">
+                                <option value="scrap">scrap</option>
+                                <option value="item">item</option>
+                                <option value="hp">hp</option>
+                                <option value="sanity">sanity</option>
+                                <option value="natureSpirit">natureSpirit</option>
+                                <option value="survivorDiscovery">survivorDiscovery</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group" id="reward-${id}-amount-group">
+                            <label>Amount *</label>
+                            <input type="number" id="reward-${id}-amount" value="10" onchange="updatePreview()">
+                        </div>
+                        
+                        <div class="form-group" id="reward-${id}-item-group" style="display:none;">
+                            <label>Item ID *</label>
+                            <input type="text" id="reward-${id}-item" placeholder="e.g., apple, healingPotion" onchange="updatePreview()">
+                        </div>
+                        
+                        <div class="form-group" id="reward-${id}-survivor-group" style="display:none;">
+                            <label>Survivor ID *</label>
+                            <input type="text" id="reward-${id}-survivor" placeholder="Character ID" onchange="updatePreview()">
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.getElementById(`${prefix}-${outcomeId}-rewards`).insertAdjacentHTML('beforeend', html);
+            updatePreview();
+        }
+        
+        function toggleRewardFields(id) {
+            const type = document.getElementById(`reward-${id}-type`).value;
+            document.getElementById(`reward-${id}-amount-group`).style.display = 
+                ['scrap', 'hp', 'sanity', 'natureSpirit'].includes(type) ? 'block' : 'none';
+            document.getElementById(`reward-${id}-item-group`).style.display = 
+                type === 'item' ? 'block' : 'none';
+            document.getElementById(`reward-${id}-survivor-group`).style.display = 
+                type === 'survivorDiscovery' ? 'block' : 'none';
+            updatePreview();
+        }
+        
+        function addPenalty(outcomeId, isSimple = false) {
+            const id = ++penaltyCounter;
+            const prefix = isSimple ? 'simple-outcome' : 'outcome';
+            const html = `
+                <div class="penalty-item" id="penalty-${id}">
+                    <div class="item-header">
+                        <span class="item-title">Penalty #${id}</span>
+                        <button class="btn btn-danger btn-sm" onclick="removeElement('penalty-${id}')">Remove</button>
+                    </div>
+                    
+                    <div class="inline-group">
+                        <div class="form-group">
+                            <label>Type *</label>
+                            <select id="penalty-${id}-type" onchange="updatePreview()">
+                                <option value="hp">hp</option>
+                                <option value="sanity">sanity</option>
+                                <option value="scrap">scrap</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Amount *</label>
+                            <input type="number" id="penalty-${id}-amount" value="5" onchange="updatePreview()">
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.getElementById(`${prefix}-${outcomeId}-penalties`).insertAdjacentHTML('beforeend', html);
+            updatePreview();
+        }
+        
+        function addStatusEffect(outcomeId, target, isSimple = false) {
+            const id = ++statusEffectCounter;
+            const prefix = isSimple ? 'simple-outcome' : 'outcome';
+            const html = `
+                <div class="status-effect-item" id="status-${id}">
+                    <div class="item-header">
+                        <span class="item-title">Status Effect #${id}</span>
+                        <button class="btn btn-danger btn-sm" onclick="removeElement('status-${id}')">Remove</button>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Effect ID *</label>
+                        <select id="status-${id}-id" onchange="updatePreview()">
+                            ${STATUS_EFFECTS.map(e => `<option value="${e}">${e}</option>`).join('')}
+                        </select>
+                    </div>
+                    
+                    <div class="inline-group-3">
+                        <div class="form-group">
+                            <label>Magnitude</label>
+                            <input type="number" id="status-${id}-magnitude" placeholder="Optional" onchange="updatePreview()">
+                        </div>
+                        <div class="form-group">
+                            <label>Combat Rounds</label>
+                            <input type="number" id="status-${id}-combat" placeholder="Optional" onchange="updatePreview()">
+                        </div>
+                        <div class="form-group">
+                            <label>Days</label>
+                            <input type="number" id="status-${id}-days" placeholder="Optional" onchange="updatePreview()">
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.getElementById(`${prefix}-${outcomeId}-status-${target}`).insertAdjacentHTML('beforeend', html);
+            updatePreview();
+        }
+        
+        function addVictoryReward() {
+            const id = ++victoryRewardCounter;
+            const html = `
+                <div class="reward-item" id="victory-reward-${id}">
+                    <div class="item-header">
+                        <span class="item-title">Victory Reward #${id}</span>
+                        <button class="btn btn-danger btn-sm" onclick="removeElement('victory-reward-${id}')">Remove</button>
+                    </div>
+                    
+                    <div class="inline-group">
+                        <div class="form-group">
+                            <label>Type *</label>
+                            <select id="victory-reward-${id}-type" onchange="updatePreview(); toggleVictoryRewardFields(${id})">
+                                <option value="scrap">scrap</option>
+                                <option value="item">item</option>
+                                <option value="hp">hp</option>
+                                <option value="sanity">sanity</option>
+                                <option value="natureSpirit">natureSpirit</option>
+                                <option value="survivorDiscovery">survivorDiscovery</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group" id="victory-reward-${id}-amount-group">
+                            <label>Amount *</label>
+                            <input type="number" id="victory-reward-${id}-amount" value="10" onchange="updatePreview()">
+                        </div>
+                        
+                        <div class="form-group" id="victory-reward-${id}-item-group" style="display:none;">
+                            <label>Item ID *</label>
+                            <input type="text" id="victory-reward-${id}-item" placeholder="e.g., apple" onchange="updatePreview()">
+                        </div>
+                        
+                        <div class="form-group" id="victory-reward-${id}-survivor-group" style="display:none;">
+                            <label>Survivor ID *</label>
+                            <input type="text" id="victory-reward-${id}-survivor" placeholder="Character ID" onchange="updatePreview()">
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('victoryRewards').insertAdjacentHTML('beforeend', html);
+            updatePreview();
+        }
+        
+        function toggleVictoryRewardFields(id) {
+            const type = document.getElementById(`victory-reward-${id}-type`).value;
+            document.getElementById(`victory-reward-${id}-amount-group`).style.display = 
+                ['scrap', 'hp', 'sanity', 'natureSpirit'].includes(type) ? 'block' : 'none';
+            document.getElementById(`victory-reward-${id}-item-group`).style.display = 
+                type === 'item' ? 'block' : 'none';
+            document.getElementById(`victory-reward-${id}-survivor-group`).style.display = 
+                type === 'survivorDiscovery' ? 'block' : 'none';
+            updatePreview();
+        }
+        
+        function removeElement(id) {
+            document.getElementById(id)?.remove();
+            updatePreview();
+        }
+        
+        function updatePreview() {
+            try {
+                const event = buildEventObject();
+                const json = JSON.stringify(event, null, 2);
+                document.getElementById('jsonPreview').textContent = json;
+            } catch (e) {
+                document.getElementById('jsonPreview').textContent = '// Error: ' + e.message;
+            }
+        }
+        
+        function buildEventObject() {
+            const event = {
+                id: document.getElementById('eventId').value || 'event-id',
+                type: document.getElementById('eventType').value,
+                title: document.getElementById('eventTitle').value || 'Untitled Event',
+                description: document.getElementById('eventDescription').value || 'No description',
+                outcomes: [],
+            };
+            
+            // Is sub-event?
+            const isSubEvent = document.getElementById('isSubEvent').value === 'true';
+            if (isSubEvent) {
+                event.isSubEvent = true;
+            }
+            
+            // Combat info
+            if (event.type === 'combat' || event.type === 'boss' || event.type === 'bossfight') {
+                const combatInfo = {};
+                const enemyIds = document.getElementById('combatEnemyIds').value;
+                if (enemyIds) {
+                    combatInfo.enemyIds = enemyIds.split(',').map(s => s.trim()).filter(Boolean);
+                }
+                const minEnemies = document.getElementById('combatEnemyMin').value;
+                const maxEnemies = document.getElementById('combatEnemyMax').value;
+                if (minEnemies) combatInfo.enemyCountMin = parseInt(minEnemies);
+                if (maxEnemies) combatInfo.enemyCountMax = parseInt(maxEnemies);
+                
+                const difficulty = document.getElementById('combatDifficulty').value;
+                if (difficulty) combatInfo.difficultyBand = difficulty;
+                
+                const tier = document.getElementById('combatTier').value;
+                if (tier) combatInfo.tier = parseInt(tier);
+                
+                if (Object.keys(combatInfo).length > 0) {
+                    event.combatInfo = combatInfo;
+                }
+                
+                // Victory rewards
+                const victoryRewards = [];
+                document.querySelectorAll('[id^="victory-reward-"]').forEach(elem => {
+                    if (elem.id.includes('-type')) {
+                        const id = elem.id.split('-')[2];
+                        const reward = buildReward(`victory-reward-${id}`);
+                        if (reward) victoryRewards.push(reward);
+                    }
+                });
+                if (victoryRewards.length > 0) {
+                    event.onVictoryRewards = victoryRewards;
+                }
+            }
+            
+            // Choices
+            const choices = [];
+            document.querySelectorAll('[id^="choice-"]').forEach(elem => {
+                if (elem.classList.contains('choice-item')) {
+                    const id = elem.id.split('-')[1];
+                    const choice = buildChoice(id);
+                    if (choice) choices.push(choice);
+                }
+            });
+            if (choices.length > 0) {
+                event.choices = choices;
+            }
+            
+            // Simple outcomes
+            const simpleOutcomes = [];
+            document.querySelectorAll('[id^="simple-outcome-"]').forEach(elem => {
+                if (elem.classList.contains('outcome-item')) {
+                    const id = elem.id.split('-')[2];
+                    const outcome = buildOutcome(id, true);
+                    if (outcome) simpleOutcomes.push(outcome);
+                }
+            });
+            if (simpleOutcomes.length > 0) {
+                event.outcomes = simpleOutcomes;
+            }
+            
+            return event;
+        }
+        
+        function buildChoice(id) {
+            const choiceId = getValue(`choice-${id}-id`);
+            if (!choiceId) return null;
+            
+            const choice = {
+                id: choiceId,
+                label: getValue(`choice-${id}-label`) || 'Unnamed Choice',
+            };
+            
+            const kind = getValue(`choice-${id}-kind`);
+            if (kind) choice.kind = kind;
+            
+            const description = getValue(`choice-${id}-description`);
+            if (description) choice.description = description;
+            
+            // Bonus rules
+            const bonusRules = [];
+            document.querySelectorAll(`#choice-${id}-bonus-rules [id^="bonus-rule-"]`).forEach(elem => {
+                if (elem.id.includes('-type')) {
+                    const ruleId = elem.id.split('-')[2];
+                    const rule = buildBonusRule(ruleId);
+                    if (rule) bonusRules.push(rule);
+                }
+            });
+            if (bonusRules.length > 0) {
+                choice.bonusRules = bonusRules;
+            }
+            
+            // Outcomes
+            const outcomes = [];
+            document.querySelectorAll(`#choice-${id}-outcomes [id^="outcome-"]`).forEach(elem => {
+                if (elem.classList.contains('outcome-item')) {
+                    const outcomeId = elem.id.split('-')[1];
+                    const outcome = buildOutcome(outcomeId);
+                    if (outcome) outcomes.push(outcome);
+                }
+            });
+            choice.outcomes = outcomes;
+            
+            return choice;
+        }
+        
+        function buildBonusRule(id) {
+            const type = getValue(`bonus-rule-${id}-type`);
+            const amount = parseFloat(getValue(`bonus-rule-${id}-amount`));
+            if (!type || isNaN(amount)) return null;
+            
+            const rule = { type, amount };
+            const value = getValue(`bonus-rule-${id}-value`);
+            if (value && (type === 'hasItemId' || type === 'hasItemType' || type === 'hasCrewTag')) {
+                rule.value = value;
+            }
+            
+            return rule;
+        }
+        
+        function buildOutcome(id, isSimple = false) {
+            const prefix = isSimple ? 'simple-outcome' : 'outcome';
+            const rate = parseFloat(getValue(`${prefix}-${id}-rate`));
+            const text = getValue(`${prefix}-${id}-text`);
+            if (isNaN(rate) || !text) return null;
+            
+            const outcome = {
+                successRate: rate,
+                resultText: text,
+            };
+            
+            const nextId = getValue(`${prefix}-${id}-next`);
+            if (nextId) outcome.nextEventId = nextId;
+            
+            // Rewards
+            const rewards = [];
+            document.querySelectorAll(`#${prefix}-${id}-rewards [id^="reward-"]`).forEach(elem => {
+                if (elem.id.includes('-type')) {
+                    const rewardId = elem.id.split('-')[1];
+                    const reward = buildReward(`reward-${rewardId}`);
+                    if (reward) rewards.push(reward);
+                }
+            });
+            if (rewards.length > 0) outcome.rewards = rewards;
+            
+            // Penalties
+            const penalties = [];
+            document.querySelectorAll(`#${prefix}-${id}-penalties [id^="penalty-"]`).forEach(elem => {
+                if (elem.id.includes('-type')) {
+                    const penaltyId = elem.id.split('-')[1];
+                    const penalty = buildPenalty(`penalty-${penaltyId}`);
+                    if (penalty) penalties.push(penalty);
+                }
+            });
+            if (penalties.length > 0) outcome.penalties = penalties;
+            
+            // Status effects (random)
+            const statusRandom = [];
+            document.querySelectorAll(`#${prefix}-${id}-status-random [id^="status-"]`).forEach(elem => {
+                if (elem.id.includes('-id')) {
+                    const statusId = elem.id.split('-')[1];
+                    const status = buildStatusEffect(`status-${statusId}`);
+                    if (status) statusRandom.push(status);
+                }
+            });
+            if (statusRandom.length > 0) outcome.applyStatusToRandom = statusRandom;
+            
+            // Status effects (all)
+            const statusAll = [];
+            document.querySelectorAll(`#${prefix}-${id}-status-all [id^="status-"]`).forEach(elem => {
+                if (elem.id.includes('-id')) {
+                    const statusId = elem.id.split('-')[1];
+                    const status = buildStatusEffect(`status-${statusId}`);
+                    if (status) statusAll.push(status);
+                }
+            });
+            if (statusAll.length > 0) outcome.applyStatusToAll = statusAll;
+            
+            return outcome;
+        }
+        
+        function buildReward(prefix) {
+            const type = getValue(`${prefix}-type`);
+            if (!type) return null;
+            
+            const reward = { rewardType: type };
+            
+            if (['scrap', 'hp', 'sanity', 'natureSpirit'].includes(type)) {
+                const amount = parseInt(getValue(`${prefix}-amount`));
+                if (!isNaN(amount)) reward.amount = amount;
+            } else if (type === 'item') {
+                const itemId = getValue(`${prefix}-item`);
+                if (itemId) reward.itemId = itemId;
+            } else if (type === 'survivorDiscovery') {
+                const survivorId = getValue(`${prefix}-survivor`);
+                if (survivorId) reward.survivorId = survivorId;
+            }
+            
+            return reward;
+        }
+        
+        function buildPenalty(prefix) {
+            const type = getValue(`${prefix}-type`);
+            const amount = parseInt(getValue(`${prefix}-amount`));
+            if (!type || isNaN(amount)) return null;
+            
+            return { penaltyType: type, amount };
+        }
+        
+        function buildStatusEffect(prefix) {
+            const id = getValue(`${prefix}-id`);
+            if (!id) return null;
+            
+            const status = { id };
+            
+            const magnitude = getValue(`${prefix}-magnitude`);
+            if (magnitude) status.magnitude = parseInt(magnitude);
+            
+            const combat = getValue(`${prefix}-combat`);
+            if (combat) status.durationInCombatRounds = parseInt(combat);
+            
+            const days = getValue(`${prefix}-days`);
+            if (days) status.durationInDays = parseInt(days);
+            
+            return status;
+        }
+        
+        function getValue(id) {
+            const elem = document.getElementById(id);
+            return elem ? elem.value.trim() : '';
+        }
+        
+        function copyJSON() {
+            const json = document.getElementById('jsonPreview').textContent;
+            navigator.clipboard.writeText(json).then(() => {
+                showNotification('✅ JSON copied to clipboard!');
+            });
+        }
+        
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.className = 'copy-success';
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            setTimeout(() => notification.remove(), 2000);
+        }
+        
+        function clearForm() {
+            if (!confirm('Clear all form data?')) return;
+            
+            document.querySelectorAll('input, textarea, select').forEach(elem => {
+                if (elem.type === 'number') elem.value = '';
+                else if (elem.tagName === 'SELECT') elem.selectedIndex = 0;
+                else elem.value = '';
+            });
+            
+            document.getElementById('choices').innerHTML = '';
+            document.getElementById('simpleOutcomes').innerHTML = '';
+            document.getElementById('victoryRewards').innerHTML = '';
+            
+            choiceCounter = 0;
+            outcomeCounter = 0;
+            rewardCounter = 0;
+            penaltyCounter = 0;
+            bonusRuleCounter = 0;
+            statusEffectCounter = 0;
+            victoryRewardCounter = 0;
+            
+            updatePreview();
+        }
+        
+        function importJSON() {
+            const json = prompt('Paste your event JSON here:');
+            if (!json) return;
+            
+            try {
+                const event = JSON.parse(json);
+                loadEventData(event);
+                showNotification('✅ Event imported successfully!');
+            } catch (e) {
+                alert('Invalid JSON: ' + e.message);
+            }
+        }
+        
+        function loadEventData(event) {
+            clearForm();
+            
+            document.getElementById('eventId').value = event.id || '';
+            document.getElementById('eventType').value = event.type || 'discovery';
+            document.getElementById('eventTitle').value = event.title || '';
+            document.getElementById('eventDescription').value = event.description || '';
+            document.getElementById('isSubEvent').value = event.isSubEvent ? 'true' : 'false';
+            
+            toggleCombatFields();
+            
+            // Load combat info
+            if (event.combatInfo) {
+                const ci = event.combatInfo;
+                if (ci.enemyIds) {
+                    document.getElementById('combatEnemyIds').value = ci.enemyIds.join(', ');
+                }
+                if (ci.enemyCountMin) document.getElementById('combatEnemyMin').value = ci.enemyCountMin;
+                if (ci.enemyCountMax) document.getElementById('combatEnemyMax').value = ci.enemyCountMax;
+                if (ci.difficultyBand) document.getElementById('combatDifficulty').value = ci.difficultyBand;
+                if (ci.tier) document.getElementById('combatTier').value = ci.tier;
+            }
+            
+            // Load victory rewards
+            if (event.onVictoryRewards) {
+                event.onVictoryRewards.forEach(() => addVictoryReward());
+                // TODO: populate reward values
+            }
+            
+            // Load choices
+            if (event.choices) {
+                event.choices.forEach(() => addChoice());
+                // TODO: populate choice values
+            }
+            
+            // Load simple outcomes
+            if (event.outcomes) {
+                event.outcomes.forEach(() => addSimpleOutcome());
+                // TODO: populate outcome values
+            }
+            
+            updatePreview();
+        }
+        
+        function loadTemplate(type) {
+            if (type === 'combat') {
+                clearForm();
+                document.getElementById('eventId').value = 'combat-example';
+                document.getElementById('eventType').value = 'combat';
+                document.getElementById('eventTitle').value = '⚔️ Example Combat';
+                document.getElementById('eventDescription').value = 'An enemy appears!';
+                document.getElementById('combatEnemyIds').value = 'scavenger';
+                toggleCombatFields();
+                addVictoryReward();
+            } else if (type === 'choice') {
+                clearForm();
+                document.getElementById('eventId').value = 'choice-example';
+                document.getElementById('eventType').value = 'discovery';
+                document.getElementById('eventTitle').value = '🤔 Example Choice Event';
+                document.getElementById('eventDescription').value = 'You face a decision...';
+                addChoice();
+            } else if (type === 'shop') {
+                clearForm();
+                document.getElementById('eventId').value = 'shop-example';
+                document.getElementById('eventType').value = 'shop';
+                document.getElementById('eventTitle').value = '🏪 Example Shop';
+                document.getElementById('eventDescription').value = 'A merchant offers goods.';
+                addSimpleOutcome();
+            }
+            updatePreview();
+        }
+        
+        // Initialize
+        toggleCombatFields();
+        updatePreview();
+    </script>
+</body>
+</html>
