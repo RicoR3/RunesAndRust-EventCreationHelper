@@ -421,8 +421,9 @@
                     <h2>JSON Preview</h2>
                     <p style="color: #94a3b8;">Copy this into your events file</p>
                 </div>
-                <div style="text-align: center; margin-bottom: 20px;">
+                <div style="text-align: center; margin-bottom: 20px; display: flex; gap: 10px; justify-content: center;">
                     <button class="btn btn-success" onclick="copyJSON()" style="font-size: 16px; padding: 12px 30px;">📋 Copy JSON</button>
+                    <button class="btn btn-primary" onclick="downloadJSON()" style="font-size: 16px; padding: 12px 30px;">💾 Download JSON</button>
                 </div>
                 <pre id="jsonPreview">// Configure the event on the left to see the JSON output</pre>
             </div>
@@ -1110,6 +1111,24 @@
             navigator.clipboard.writeText(json).then(() => {
                 showNotification('✅ JSON copied to clipboard!');
             });
+        }
+        
+        function downloadJSON() {
+            const json = document.getElementById('jsonPreview').textContent;
+            const eventId = document.getElementById('eventId').value || 'event';
+            const filename = `${eventId}.json`;
+            
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showNotification(`✅ Downloaded ${filename}`);
         }
         
         function showNotification(message) {
