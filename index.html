@@ -556,6 +556,7 @@
                                 <option value="hasFood">hasFood</option>
                                 <option value="hasSanityAid">hasSanityAid</option>
                                 <option value="hasCrewTag">hasCrewTag</option>
+                                <option value="hasSpecificCrew">hasSpecificCrew</option>
                             </select>
                         </div>
                         
@@ -577,8 +578,30 @@
         
         function toggleBonusRuleValue(id) {
             const type = document.getElementById(`bonus-rule-${id}-type`).value;
-            const needsValue = type === 'hasItemId' || type === 'hasItemType' || type === 'hasCrewTag';
-            document.getElementById(`bonus-rule-${id}-value-group`).style.display = needsValue ? 'block' : 'none';
+            const valueGroup = document.getElementById(`bonus-rule-${id}-value-group`);
+            const needsValue = ['hasItemId', 'hasItemType', 'hasCrewTag', 'hasSpecificCrew'].includes(type);
+            valueGroup.style.display = needsValue ? 'block' : 'none';
+            
+            // Replace input with dropdown for hasCrewTag
+            if (type === 'hasCrewTag') {
+                valueGroup.innerHTML = `
+                    <label>Crew Tag</label>
+                    <select id="bonus-rule-${id}-value" onchange="updatePreview()">
+                        <option value="">-- Select Tag --</option>
+                        <option value="strong">strong</option>
+                        <option value="swifty">swifty</option>
+                        <option value="wise">wise</option>
+                        <option value="handy">handy</option>
+                        <option value="lucky">lucky</option>
+                    </select>
+                `;
+            } else if (needsValue) {
+                const placeholder = type === 'hasSpecificCrew' ? 'druid,mechanic,thief' : 'item ID / type';
+                valueGroup.innerHTML = `
+                    <label>Value</label>
+                    <input type="text" id="bonus-rule-${id}-value" placeholder="${placeholder}" onchange="updatePreview()">
+                `;
+            }
         }
         
         function addOutcome(choiceId) {
@@ -873,11 +896,39 @@
         function updatePreview() {
             try {
                 const event = buildEventObject();
-                const json = JSON.stringify(event, null, 2);
+                const json = formatAsTypeScriptObject(event);
                 document.getElementById('jsonPreview').textContent = json;
             } catch (e) {
                 document.getElementById('jsonPreview').textContent = '// Error: ' + e.message;
             }
+        }
+        
+        function formatAsTypeScriptObject(obj, indent = 0) {
+            const indentStr = '  '.repeat(indent);
+            const nextIndent = '  '.repeat(indent + 1);
+            
+            if (obj === null) return 'null';
+            if (obj === undefined) return 'undefined';
+            if (typeof obj === 'string') return `"${obj}"`;
+            if (typeof obj === 'number' || typeof obj === 'boolean') return String(obj);
+            
+            if (Array.isArray(obj)) {
+                if (obj.length === 0) return '[]';
+                const items = obj.map(item => nextIndent + formatAsTypeScriptObject(item, indent + 1));
+                return '[\n' + items.join(',\n') + '\n' + indentStr + ']';
+            }
+            
+            if (typeof obj === 'object') {
+                const keys = Object.keys(obj);
+                if (keys.length === 0) return '{}';
+                const props = keys.map(key => {
+                    const value = formatAsTypeScriptObject(obj[key], indent + 1);
+                    return `${nextIndent}${key}: ${value}`;
+                });
+                return '{\n' + props.join(',\n') + '\n' + indentStr + '}';
+            }
+            
+            return String(obj);
         }
         
         function buildEventObject() {
