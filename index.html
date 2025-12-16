@@ -464,7 +464,7 @@
             'bleeding', 'poisoned', 'ignited', 'disoriented', 'stunned', 'shocked',
             'flashed', 'agitated', 'feared', 'chilled', 'hungry', 'undernourished',
             'crippled', 'brokenLeg', 'weakened', 'exposed', 'fortified', 'empowered',
-            'ignorant', 'enlarged', 'immolated', 'delirious', 'vulnerable', 'berserk'
+            'ignorant', 'enlarged', 'immolated', 'delirious', 'vulnerable', 'enraged'
         ];
         
         // Common item IDs (from your game)
@@ -728,6 +728,7 @@
                             <select id="reward-${id}-type" onchange="updatePreview(); toggleRewardFields(${id})">
                                 <option value="scrap">scrap</option>
                                 <option value="item">item</option>
+                                <option value="randomItem">randomItem</option>
                                 <option value="hp">hp</option>
                                 <option value="sanity">sanity</option>
                                 <option value="natureSpirit">natureSpirit</option>
@@ -749,6 +750,30 @@
                             <label>Survivor ID *</label>
                             <input type="text" id="reward-${id}-survivor" placeholder="Character ID" onchange="updatePreview()">
                         </div>
+                        
+                        <div class="form-group" id="reward-${id}-itemtype-group" style="display:none;">
+                            <label>Item Type (optional)</label>
+                            <select id="reward-${id}-itemtype" onchange="updatePreview()">
+                                <option value="">Any</option>
+                                <option value="food">food</option>
+                                <option value="material">material</option>
+                                <option value="weapon">weapon</option>
+                                <option value="trinket">trinket</option>
+                                <option value="tool">tool</option>
+                                <option value="trash">trash</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group" id="reward-${id}-rarity-group" style="display:none;">
+                            <label>Rarity (optional)</label>
+                            <select id="reward-${id}-rarity" onchange="updatePreview()">
+                                <option value="">Any</option>
+                                <option value="common">common</option>
+                                <option value="uncommon">uncommon</option>
+                                <option value="rare">rare</option>
+                                <option value="epic">epic</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
             `;
@@ -759,11 +784,15 @@
         function toggleRewardFields(id) {
             const type = document.getElementById(`reward-${id}-type`).value;
             document.getElementById(`reward-${id}-amount-group`).style.display = 
-                ['scrap', 'hp', 'sanity', 'natureSpirit'].includes(type) ? 'block' : 'none';
+                ['scrap', 'hp', 'sanity', 'natureSpirit', 'randomItem'].includes(type) ? 'block' : 'none';
             document.getElementById(`reward-${id}-item-group`).style.display = 
                 type === 'item' ? 'block' : 'none';
             document.getElementById(`reward-${id}-survivor-group`).style.display = 
                 type === 'survivorDiscovery' ? 'block' : 'none';
+            document.getElementById(`reward-${id}-itemtype-group`).style.display = 
+                type === 'randomItem' ? 'block' : 'none';
+            document.getElementById(`reward-${id}-rarity-group`).style.display = 
+                type === 'randomItem' ? 'block' : 'none';
             updatePreview();
         }
         
@@ -849,6 +878,7 @@
                             <select id="victory-reward-${id}-type" onchange="updatePreview(); toggleVictoryRewardFields(${id})">
                                 <option value="scrap">scrap</option>
                                 <option value="item">item</option>
+                                <option value="randomItem">randomItem</option>
                                 <option value="hp">hp</option>
                                 <option value="sanity">sanity</option>
                                 <option value="natureSpirit">natureSpirit</option>
@@ -870,6 +900,30 @@
                             <label>Survivor ID *</label>
                             <input type="text" id="victory-reward-${id}-survivor" placeholder="Character ID" onchange="updatePreview()">
                         </div>
+                        
+                        <div class="form-group" id="victory-reward-${id}-itemtype-group" style="display:none;">
+                            <label>Item Type (optional)</label>
+                            <select id="victory-reward-${id}-itemtype" onchange="updatePreview()">
+                                <option value="">Any</option>
+                                <option value="food">food</option>
+                                <option value="material">material</option>
+                                <option value="weapon">weapon</option>
+                                <option value="trinket">trinket</option>
+                                <option value="tool">tool</option>
+                                <option value="trash">trash</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group" id="victory-reward-${id}-rarity-group" style="display:none;">
+                            <label>Rarity (optional)</label>
+                            <select id="victory-reward-${id}-rarity" onchange="updatePreview()">
+                                <option value="">Any</option>
+                                <option value="common">common</option>
+                                <option value="uncommon">uncommon</option>
+                                <option value="rare">rare</option>
+                                <option value="epic">epic</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
             `;
@@ -880,11 +934,15 @@
         function toggleVictoryRewardFields(id) {
             const type = document.getElementById(`victory-reward-${id}-type`).value;
             document.getElementById(`victory-reward-${id}-amount-group`).style.display = 
-                ['scrap', 'hp', 'sanity', 'natureSpirit'].includes(type) ? 'block' : 'none';
+                ['scrap', 'hp', 'sanity', 'natureSpirit', 'randomItem'].includes(type) ? 'block' : 'none';
             document.getElementById(`victory-reward-${id}-item-group`).style.display = 
                 type === 'item' ? 'block' : 'none';
             document.getElementById(`victory-reward-${id}-survivor-group`).style.display = 
                 type === 'survivorDiscovery' ? 'block' : 'none';
+            document.getElementById(`victory-reward-${id}-itemtype-group`).style.display = 
+                type === 'randomItem' ? 'block' : 'none';
+            document.getElementById(`victory-reward-${id}-rarity-group`).style.display = 
+                type === 'randomItem' ? 'block' : 'none';
             updatePreview();
         }
         
@@ -1137,6 +1195,15 @@
             } else if (type === 'item') {
                 const itemId = getValue(`${prefix}-item`);
                 if (itemId) reward.itemId = itemId;
+            } else if (type === 'randomItem') {
+                const amount = parseInt(getValue(`${prefix}-amount`));
+                if (!isNaN(amount)) reward.amount = amount;
+                
+                const itemType = getValue(`${prefix}-itemtype`);
+                if (itemType) reward.itemType = itemType;
+                
+                const rarity = getValue(`${prefix}-rarity`);
+                if (rarity) reward.rarity = rarity;
             } else if (type === 'survivorDiscovery') {
                 const survivorId = getValue(`${prefix}-survivor`);
                 if (survivorId) reward.survivorId = survivorId;
