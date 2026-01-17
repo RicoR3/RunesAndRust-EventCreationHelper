@@ -455,9 +455,10 @@
         const CHOICE_KINDS = ['cautious', 'balanced', 'bold'];
         const REWARD_TYPES = ['scrap', 'item', 'hp', 'sanity', 'natureSpirit', 'survivorDiscovery'];
         const PENALTY_TYPES = ['hp', 'sanity', 'scrap'];
-        const BONUS_RULE_TYPES = ['hasItemId', 'hasItemType', 'hasFood', 'hasSanityAid', 'hasCrewTag'];
+        const BONUS_RULE_TYPES = ['hasItemId', 'hasItemType', 'hasFood', 'hasSanityAid', 'hasCrewTag', 'hasSupplyCategory'];
         const ITEM_TYPES = ['weapon', 'food', 'tool', 'sanity', 'misc', 'trinket', 'material', 'trash'];
         const CREW_TAGS = ['strong', 'swifty', 'wise', 'handy', 'lucky'];
+        const SUPPLY_CATEGORIES = ['Heavy Tools', 'Precision Tools', 'Medical', 'Technology', 'Herbalistic', 'Alchemic', 'Diplomatic', 'Animalistic', 'Gaia-Infused'];
         
         // Status effects from registry
         const STATUS_EFFECTS = [
@@ -557,6 +558,7 @@
                                 <option value="hasSanityAid">hasSanityAid</option>
                                 <option value="hasCrewTag">hasCrewTag</option>
                                 <option value="hasSpecificCrew">hasSpecificCrew</option>
+                                <option value="hasSupplyCategory">hasSupplyCategory</option>
                             </select>
                         </div>
                         
@@ -579,7 +581,7 @@
         function toggleBonusRuleValue(id) {
             const type = document.getElementById(`bonus-rule-${id}-type`).value;
             const valueGroup = document.getElementById(`bonus-rule-${id}-value-group`);
-            const needsValue = ['hasItemId', 'hasItemType', 'hasCrewTag', 'hasSpecificCrew'].includes(type);
+            const needsValue = ['hasItemId', 'hasItemType', 'hasCrewTag', 'hasSpecificCrew', 'hasSupplyCategory'].includes(type);
             valueGroup.style.display = needsValue ? 'block' : 'none';
             
             // Replace input with dropdown for hasCrewTag
@@ -595,6 +597,25 @@
                         <option value="lucky">lucky</option>
                     </select>
                 `;
+            } else if (type === 'hasSupplyCategory') {
+                valueGroup.innerHTML = `
+                    <label>Supply Category</label>
+                    <select id="bonus-rule-${id}-value" onchange="updatePreview(); toggleCustomCategory(${id})">
+                        <option value="">-- Select Category --</option>
+                        <option value="Heavy Tools">Heavy Tools</option>
+                        <option value="Precision Tools">Precision Tools</option>
+                        <option value="Medical">Medical</option>
+                        <option value="Technology">Technology</option>
+                        <option value="Herbalistic">Herbalistic</option>
+                        <option value="Alchemic">Alchemic</option>
+                        <option value="Diplomatic">Diplomatic</option>
+                        <option value="Animalistic">Animalistic</option>
+                        <option value="Gaia-Infused">Gaia-Infused</option>
+                        <option value="__custom__">✏️ Custom Category...</option>
+                    </select>
+                    <input type="text" id="bonus-rule-${id}-custom" placeholder="Enter custom category name" 
+                           style="display:none; margin-top:8px;" onchange="updatePreview()">
+                `;
             } else if (needsValue) {
                 const placeholder = type === 'hasSpecificCrew' ? 'druid,mechanic,thief' : 'item ID / type';
                 valueGroup.innerHTML = `
@@ -602,6 +623,22 @@
                     <input type="text" id="bonus-rule-${id}-value" placeholder="${placeholder}" onchange="updatePreview()">
                 `;
             }
+        }
+        
+        function toggleCustomCategory(id) {
+            const selectElem = document.getElementById(`bonus-rule-${id}-value`);
+            const customInput = document.getElementById(`bonus-rule-${id}-custom`);
+            
+            if (selectElem && customInput) {
+                if (selectElem.value === '__custom__') {
+                    customInput.style.display = 'block';
+                    customInput.focus();
+                } else {
+                    customInput.style.display = 'none';
+                    customInput.value = '';
+                }
+            }
+            updatePreview();
         }
         
         function addOutcome(choiceId) {
@@ -1114,8 +1151,14 @@
             if (!type || isNaN(amount)) return null;
             
             const rule = { type, amount };
-            const value = getValue(`bonus-rule-${id}-value`);
-            if (value && (type === 'hasItemId' || type === 'hasItemType' || type === 'hasCrewTag')) {
+            let value = getValue(`bonus-rule-${id}-value`);
+            
+            // Handle custom supply category
+            if (type === 'hasSupplyCategory' && value === '__custom__') {
+                value = getValue(`bonus-rule-${id}-custom`);
+            }
+            
+            if (value && (type === 'hasItemId' || type === 'hasItemType' || type === 'hasCrewTag' || type === 'hasSupplyCategory')) {
                 rule.value = value;
             }
             
