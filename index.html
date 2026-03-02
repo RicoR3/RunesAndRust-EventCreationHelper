@@ -314,15 +314,100 @@
             margin-bottom: 15px;
             font-size: 14px;
         }
+
+        /* ── Tab navigation ─────────────────────────────────── */
+        .tab-nav {
+            background: #1e293b;
+            display: flex;
+            gap: 0;
+            border-bottom: 2px solid #334155;
+        }
+        .tab-btn {
+            padding: 14px 32px;
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.18s;
+        }
+        .tab-btn:hover { color: #e2e8f0; background: #334155; }
+        .tab-btn.active { color: #e2e8f0; border-bottom-color: #818cf8; }
+
+        .tab-pane { display: none; }
+        .tab-pane.active { display: flex; flex-direction: column; }
+
+        /* ── Item creator layout ─────────────────────────────── */
+        .item-creator-wrap {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+            min-height: calc(100vh - 220px);
+        }
+        @media (max-width: 1024px) {
+            .item-creator-wrap { grid-template-columns: 1fr; }
+        }
+        .item-form-panel {
+            padding: 30px;
+            overflow-y: auto;
+            max-height: calc(100vh - 220px);
+            background: #1e293b;
+        }
+        .item-preview-panel {
+            padding: 30px;
+            background: #0f172a;
+            border-left: 2px solid #334155;
+            overflow-y: auto;
+            max-height: calc(100vh - 220px);
+        }
+
+        /* shape grid */
+        .shape-grid { display: inline-grid; gap: 4px; margin-top: 6px; }
+        .shape-cell {
+            width: 34px; height: 34px;
+            border-radius: 4px;
+            border: 2px solid #475569;
+            background: #0f172a;
+            cursor: pointer;
+            transition: background 0.12s;
+        }
+        .shape-cell.filled { background: #6366f1; border-color: #818cf8; }
+
+        .cond-effect-item, .passive-row {
+            background: #334155;
+            border-radius: 8px;
+            padding: 14px;
+            margin-bottom: 12px;
+        }
+
+        .badge { display:inline-block; font-size:11px; padding:2px 8px; border-radius:999px; font-weight:700; }
+        .badge-tier1 { background:#334155; color:#94a3b8; }
+        .badge-tier2 { background:#7c3aed; color:#e9d5ff; }
+        .badge-dot { margin-left:4px; }
+
+        /* effect condition type toggle */
+        .cond-fields { margin-top: 10px; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>Event Creation Helper</h1>
-            <p>Create expedition events for Runes & Rust - No coding required!</p>
+            <h1>🎲 Runes &amp; Rust — Creation Helpers</h1>
+            <p>Event &amp; Item editor — No coding required!</p>
         </div>
-        
+
+        <!-- ── Top tab switcher ─────────────────────────────── -->
+        <div class="tab-nav">
+            <button class="tab-btn active" id="tab-btn-event" onclick="switchTab('event')">🎲 Event Creator</button>
+            <button class="tab-btn"        id="tab-btn-item"  onclick="switchTab('item')">⚙️ Item Creator</button>
+        </div>
+
+        <!-- ══════════════════════ EVENT CREATOR TAB ══════════════════════ -->
+        <div class="tab-pane active" id="tab-event">
+
         <div class="toolbar">
             <div class="toolbar-left">
                 <button class="btn btn-primary" onclick="loadTemplate('combat')">⚔️ Combat Template</button>
@@ -334,7 +419,7 @@
                 <button class="btn btn-danger" onclick="clearForm()">🗑️ Clear Form</button>
             </div>
         </div>
-        
+
         <div class="content">
             <div class="form-panel">
                 <h2 style="margin-bottom: 20px;">Event Configuration</h2>
@@ -447,7 +532,282 @@
                 <pre id="jsonPreview">// Configure the event on the left to see the JSON output</pre>
             </div>
         </div>
-    </div>
+
+        </div><!-- /tab-event -->
+
+        <!-- ══════════════════════ ITEM CREATOR TAB ══════════════════════ -->
+        <div class="tab-pane" id="tab-item">
+        <div class="toolbar">
+            <div class="toolbar-left">
+                <button class="btn btn-primary" onclick="icClearForm()">🗑️ Clear Item Form</button>
+            </div>
+            <div class="toolbar-right">
+                <button class="btn btn-success" onclick="icCopyCode()" style="font-size:14px; padding:9px 22px;">📋 Copy Code</button>
+            </div>
+        </div>
+
+        <div class="item-creator-wrap">
+            <!-- LEFT: item form -->
+            <div class="item-form-panel">
+                <h2 style="margin-bottom:20px;">Item Configuration</h2>
+
+                <!-- ── Basic Properties ───────────────────────────────────── -->
+                <div class="section-header">📦 Basic Properties</div>
+
+                <div class="inline-group">
+                    <div class="form-group">
+                        <label>Item ID *</label>
+                        <input type="text" id="ic-id" placeholder="e.g. reinforcedBow" onchange="icUpdatePreview()">
+                        <div class="help-text">camelCase, unique across all items</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Display Name *</label>
+                        <input type="text" id="ic-name" placeholder="e.g. Reinforced Bow" onchange="icUpdatePreview()">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="ic-description" placeholder="Flavour text shown in tooltip..." onchange="icUpdatePreview()"></textarea>
+                </div>
+
+                <div class="inline-group-3">
+                    <div class="form-group">
+                        <label>Item Type *</label>
+                        <select id="ic-type" onchange="icUpdatePreview()">
+                            <option value="weapon">weapon</option>
+                            <option value="food">food</option>
+                            <option value="tool">tool</option>
+                            <option value="sanity">sanity</option>
+                            <option value="misc">misc</option>
+                            <option value="trinket">trinket</option>
+                            <option value="material">material</option>
+                            <option value="trash">trash</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Rarity</label>
+                        <select id="ic-rarity" onchange="icUpdatePreview()">
+                            <option value="">none</option>
+                            <option value="common">common</option>
+                            <option value="uncommon">uncommon</option>
+                            <option value="rare">rare</option>
+                            <option value="epic">epic</option>
+                            <option value="unique">unique</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Value (sell price)</label>
+                        <input type="number" id="ic-value" value="5" min="0" onchange="icUpdatePreview()">
+                    </div>
+                </div>
+
+                <div class="inline-group">
+                    <div class="form-group">
+                        <label>Width (cols)</label>
+                        <input type="number" id="ic-width" value="1" min="1" max="3" onchange="icOnSizeChange()">
+                    </div>
+                    <div class="form-group">
+                        <label>Height (rows)</label>
+                        <input type="number" id="ic-height" value="1" min="1" max="3" onchange="icOnSizeChange()">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Icon path (import variable name or emoji)</label>
+                    <input type="text" id="ic-icon" placeholder="e.g. reinforcedBowImg  or  🗡️" onchange="icUpdatePreview()">
+                    <div class="help-text">Use the import alias from assets/itemIcons/…</div>
+                </div>
+
+                <div class="inline-group">
+                    <div class="form-group">
+                        <label>Combat Category</label>
+                        <select id="ic-combat-cat" onchange="icUpdatePreview()">
+                            <option value="">none</option>
+                            <option value="attack">attack</option>
+                            <option value="defend">defend</option>
+                            <option value="support">support</option>
+                            <option value="special">special</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Max Charges (optional)</label>
+                        <input type="number" id="ic-max-charges" min="1" placeholder="e.g. 3" onchange="icUpdatePreview()">
+                    </div>
+                </div>
+
+                <!-- ── Tags ───────────────────────────────────────────────── -->
+                <div class="form-group">
+                    <label>Character Tags (restrict who can carry)</label>
+                    <div style="display:flex; gap:16px; flex-wrap:wrap; margin-top:4px;">
+                        <label><input type="checkbox" class="ic-tag-cb" value="strong" onchange="icUpdatePreview()"> strong</label>
+                        <label><input type="checkbox" class="ic-tag-cb" value="swifty" onchange="icUpdatePreview()"> swifty</label>
+                        <label><input type="checkbox" class="ic-tag-cb" value="wise"   onchange="icUpdatePreview()"> wise</label>
+                        <label><input type="checkbox" class="ic-tag-cb" value="handy"  onchange="icUpdatePreview()"> handy</label>
+                        <label><input type="checkbox" class="ic-tag-cb" value="lucky"  onchange="icUpdatePreview()"> lucky</label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Supply Categories (comma-separated)</label>
+                    <input type="text" id="ic-supply-cats" placeholder="e.g. Heavy Tools, Technology" onchange="icUpdatePreview()">
+                    <div class="help-text">Used for event bonus rules. Options: Heavy Tools, Precision Tools, Medical, Technology, Herbalistic, Alchemic, Diplomatic, Animalistic, Gaia-Infused</div>
+                </div>
+
+                <!-- ── Shape ─────────────────────────────────────────────── -->
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="ic-has-shape" onchange="icRefreshHasShape()">
+                        Custom non-rectangular shape
+                    </label>
+                    <div class="help-text">Only needed if the item doesn't fill its full width×height rectangle. Click cells to toggle.</div>
+                </div>
+                <div id="ic-shape-section" style="display:none; margin-bottom:20px;">
+                    <div class="shape-grid" id="ic-shape-grid"></div>
+                    <div class="help-text" style="margin-top:6px;">Blue = occupied cell. At least one cell must be filled.</div>
+                </div>
+
+                <!-- ── Passive Effect ─────────────────────────────────────── -->
+                <div class="section-header">🛡️ Passive Effect (always active)</div>
+                <div class="form-group">
+                    <label><input type="checkbox" id="ic-has-passive" onchange="icRefreshHasPassive()"> Has passive stat modifiers</label>
+                </div>
+                <div id="ic-passive-section" style="display:none;">
+                    <div class="inline-group" style="margin-bottom:6px;">
+                        <div class="form-group"><label>Max HP ±</label>
+                            <input type="number" id="ic-passive-maxHp" placeholder="e.g. 10 or -5" onchange="icUpdatePreview()"></div>
+                        <div class="form-group"><label>Max Sanity ±</label>
+                            <input type="number" id="ic-passive-maxSanity" placeholder="e.g. 5" onchange="icUpdatePreview()"></div>
+                    </div>
+                    <div class="inline-group">
+                        <div class="form-group"><label>Base Attack ±</label>
+                            <input type="number" id="ic-passive-baseAttack" placeholder="e.g. 3" onchange="icUpdatePreview()"></div>
+                        <div class="form-group"><label>Base Defense ±</label>
+                            <input type="number" id="ic-passive-baseDefense" placeholder="e.g. 2" onchange="icUpdatePreview()"></div>
+                        <div class="form-group"><label>Initiative ±</label>
+                            <input type="number" id="ic-passive-initiative" placeholder="e.g. 5" onchange="icUpdatePreview()"></div>
+                    </div>
+                </div>
+
+                <!-- ── Combat Effect ──────────────────────────────────────── -->
+                <div class="section-header">⚔️ Combat Effect (used in battle)</div>
+                <div class="form-group">
+                    <label><input type="checkbox" id="ic-has-combat" onchange="icRefreshHasCombat()"> Has combat effect</label>
+                </div>
+                <div id="ic-combat-section" style="display:none;">
+                    <div class="inline-group">
+                        <div class="form-group">
+                            <label>Target *</label>
+                            <select id="ic-ce-target" onchange="icUpdatePreview()">
+                                <option value="targetEnemy">targetEnemy (selected enemy)</option>
+                                <option value="targetAlly">targetAlly (selected ally)</option>
+                                <option value="self">self</option>
+                                <option value="allyRandom">allyRandom</option>
+                                <option value="allyAll">allyAll</option>
+                                <option value="enemyRandom">enemyRandom</option>
+                                <option value="enemyAll">enemyAll</option>
+                                <option value="allyHighestAttack">allyHighestAttack</option>
+                                <option value="allyHighestInitiative">allyHighestInitiative</option>
+                                <option value="enemyHighestAttack">enemyHighestAttack</option>
+                                <option value="enemyHighestInitiative">enemyHighestInitiative</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Consume on Use</label>
+                            <select id="ic-ce-consume" onchange="icUpdatePreview()">
+                                <option value="">use type default</option>
+                                <option value="false">false (reusable)</option>
+                                <option value="true">true (consumed)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="inline-group">
+                        <div class="form-group"><label>HP Delta min</label>
+                            <input type="number" id="ic-ce-hp-min" placeholder="e.g. -12" onchange="icUpdatePreview()"></div>
+                        <div class="form-group"><label>HP Delta max</label>
+                            <input type="number" id="ic-ce-hp-max" placeholder="e.g. -7" onchange="icUpdatePreview()"></div>
+                    </div>
+                    <div class="inline-group">
+                        <div class="form-group"><label>Sanity Delta min</label>
+                            <input type="number" id="ic-ce-san-min" placeholder="e.g. -5" onchange="icUpdatePreview()"></div>
+                        <div class="form-group"><label>Sanity Delta max</label>
+                            <input type="number" id="ic-ce-san-max" placeholder="e.g. -2" onchange="icUpdatePreview()"></div>
+                    </div>
+                    <div id="ic-ce-status-wrap"><!-- injected by initApplyStatus --></div>
+                    <div id="ic-ce-remove-wrap"><!-- injected by initRemoveStatus --></div>
+                </div>
+
+                <!-- ── Conditional Combat Effects ──────────────────────────── -->
+                <div class="section-header">🎯 Conditional Combat Effects</div>
+                <div class="help-text" style="margin: -12px 0 16px 0; padding-left:4px;">
+                    Effects that trigger only when a condition is met (e.g. burning enemy, low HP, random chance).
+                    Checked AFTER the main combat effect.
+                </div>
+                <div id="ic-cond-effects"></div>
+                <div class="add-button-container">
+                    <button class="btn btn-primary btn-sm" onclick="icAddConditionalEffect()">+ Add Conditional Effect</button>
+                </div>
+
+                <!-- ── Activation Effect ───────────────────────────────────── -->
+                <div class="section-header">🌿 Activation Effect (outside combat)</div>
+                <div class="help-text" style="margin:-12px 0 16px 0; padding-left:4px;">
+                    Triggered by right-click → Use in camp or between events.
+                </div>
+                <div class="form-group">
+                    <label><input type="checkbox" id="ic-has-activation" onchange="icRefreshHasActivation()"> Has activation effect</label>
+                </div>
+                <div id="ic-activation-section" style="display:none;">
+                    <div class="inline-group">
+                        <div class="form-group">
+                            <label>Target</label>
+                            <select id="ic-ae-target" onchange="icUpdatePreview()">
+                                <option value="self">self (the user)</option>
+                                <option value="allyAll">allyAll (whole crew)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Consume on Use</label>
+                            <select id="ic-ae-consume" onchange="icUpdatePreview()">
+                                <option value="">use type default</option>
+                                <option value="true">true (consumed after use)</option>
+                                <option value="false">false (reusable)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="inline-group">
+                        <div class="form-group"><label>HP Delta min</label>
+                            <input type="number" id="ic-ae-hp-min" placeholder="e.g. 10" onchange="icUpdatePreview()"></div>
+                        <div class="form-group"><label>HP Delta max</label>
+                            <input type="number" id="ic-ae-hp-max" placeholder="e.g. 15" onchange="icUpdatePreview()"></div>
+                    </div>
+                    <div class="inline-group">
+                        <div class="form-group"><label>Sanity Delta min</label>
+                            <input type="number" id="ic-ae-san-min" placeholder="e.g. 5" onchange="icUpdatePreview()"></div>
+                        <div class="form-group"><label>Sanity Delta max</label>
+                            <input type="number" id="ic-ae-san-max" placeholder="e.g. 10" onchange="icUpdatePreview()"></div>
+                    </div>
+                    <div id="ic-ae-status-wrap"></div>
+                    <div id="ic-ae-remove-wrap"></div>
+                </div>
+
+            </div><!-- /item-form-panel -->
+
+            <!-- RIGHT: preview -->
+            <div class="item-preview-panel">
+                <div class="preview-header">
+                    <h2>TypeScript Preview</h2>
+                    <p style="color:#94a3b8;">Paste into src/game/data/items/*.ts</p>
+                </div>
+                <div style="text-align:center; margin-bottom:20px;">
+                    <button class="btn btn-success" onclick="icCopyCode()" style="font-size:16px; padding:12px 30px;">📋 Copy Code</button>
+                </div>
+                <pre id="ic-json-preview" style="font-size:12px; line-height:1.7;">// Fill in at least "id" and "name" to see the output.</pre>
+            </div>
+        </div>
+
+        </div><!-- /tab-item -->
+
+    </div><!-- /container -->
 
     <script>
         // Data from core.ts
@@ -1430,6 +1790,566 @@
         // Initialize
         toggleCombatFields();
         updatePreview();
+
+        // ─────────────────────────────────────────────────────────────────────
+        //  TAB SWITCHER
+        // ─────────────────────────────────────────────────────────────────────
+        function switchTab(name) {
+            document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('tab-' + name).classList.add('active');
+            document.getElementById('tab-btn-' + name).classList.add('active');
+        }
+
+        // ═════════════════════════════════════════════════════════════════════
+        //  ITEM CREATOR
+        // ═════════════════════════════════════════════════════════════════════
+
+        const IC_STATUS_EFFECTS = [
+            // tier 1 – base
+            { id:'bleeding',      name:'Bleeding',        hasMag:true,  tier:1 },
+            { id:'poisoned',      name:'Poisoned',        hasMag:true,  tier:1 },
+            { id:'ignited',       name:'Ignited',         hasMag:true,  tier:1 },
+            { id:'disoriented',   name:'Disoriented',     hasMag:true,  tier:1 },
+            { id:'stunned',       name:'Stunned',         hasMag:false, tier:1 },
+            { id:'shocked',       name:'Shocked',         hasMag:true,  tier:1 },
+            { id:'flashed',       name:'Flashed',         hasMag:true,  tier:1 },
+            { id:'agitated',      name:'Agitated',        hasMag:true,  tier:1 },
+            { id:'feared',        name:'Feared',          hasMag:true,  tier:1 },
+            { id:'chilled',       name:'Chilled',         hasMag:true,  tier:1 },
+            { id:'hungry',        name:'Hungry',          hasMag:false, tier:1 },
+            { id:'rumblingStomach',name:'Rumbling Stomach',hasMag:false,tier:1 },
+            { id:'extraRations',  name:'Extra Rations',   hasMag:false, tier:1 },
+            { id:'undernourished',name:'Undernourished',  hasMag:false, tier:1 },
+            { id:'crippled',      name:'Crippled',        hasMag:false, tier:1 },
+            { id:'brokenLeg',     name:'Broken Leg',      hasMag:false, tier:1 },
+            { id:'weakened',      name:'Weakened',        hasMag:true,  tier:1 },
+            { id:'exposed',       name:'Exposed',         hasMag:true,  tier:1 },
+            { id:'fortified',     name:'Fortified',       hasMag:true,  tier:1 },
+            { id:'empowered',     name:'Empowered',       hasMag:true,  tier:1 },
+            { id:'ignorant',      name:'Ignorant',        hasMag:true,  tier:1 },
+            { id:'enlarged',      name:'Enlarged',        hasMag:true,  tier:1 },
+            { id:'temp_hp',       name:'Nature\'s Surge', hasMag:true,  tier:1 },
+            // tier 2 – fusion
+            { id:'immolated',     name:'Immolated',       hasMag:true,  tier:2 },
+            { id:'delirious',     name:'Delirious',       hasMag:true,  tier:2 },
+            { id:'vulnerable',    name:'Vulnerable',      hasMag:true,  tier:2 },
+            { id:'enraged',       name:'Enraged',         hasMag:true,  tier:2 },
+            { id:'septic',        name:'Septic',          hasMag:true,  tier:2 },
+            { id:'frozenSolid',   name:'Frozen Solid',    hasMag:true,  tier:2 },
+            { id:'fortifiedMind', name:'Fortified Mind',  hasMag:true,  tier:2 },
+            { id:'reinforced',    name:'Reinforced',      hasMag:true,  tier:2 },
+            { id:'frail',         name:'Frailed',         hasMag:true,  tier:2 },
+            { id:'easyPrey',      name:'Easy Prey',       hasMag:true,  tier:2 },
+            { id:'scorched',      name:'Scorched',        hasMag:true,  tier:2 },
+            { id:'overstimulated',name:'Overstimulated',  hasMag:true,  tier:2 },
+            { id:'exhausted',     name:'Exhausted',       hasMag:true,  tier:2 },
+            { id:'tremor',        name:'Tremor',          hasMag:true,  tier:2 },
+        ];
+
+        function statusOptionsHtml(selectedId) {
+            let html = '<option value="">-- none --</option>';
+            html += '<optgroup label="─── Tier 1 (Base) ───">';
+            IC_STATUS_EFFECTS.filter(s=>s.tier===1).forEach(s => {
+                html += `<option value="${s.id}" ${selectedId===s.id?'selected':''}>${s.name}${s.hasMag?' ★':''}</option>`;
+            });
+            html += '</optgroup><optgroup label="─── Tier 2 (Fusion) ───">';
+            IC_STATUS_EFFECTS.filter(s=>s.tier===2).forEach(s => {
+                html += `<option value="${s.id}" ${selectedId===s.id?'selected':''}>${s.name}${s.hasMag?' ★':''}</option>`;
+            });
+            html += '</optgroup>';
+            return html;
+        }
+
+        // shape grid state
+        let icShapeW = 1, icShapeH = 1;
+        let icShapeCells = [[true]];  // [row][col]
+
+        function icInitShape(w, h) {
+            icShapeW = Math.max(1, Math.min(3, w));
+            icShapeH = Math.max(1, Math.min(3, h));
+            icShapeCells = Array.from({length: icShapeH}, () => Array(icShapeW).fill(true));
+            icRenderShape();
+        }
+
+        function icOnSizeChange() {
+            const w = parseInt(document.getElementById('ic-width').value) || 1;
+            const h = parseInt(document.getElementById('ic-height').value) || 1;
+            icInitShape(w, h);
+            icUpdatePreview();
+        }
+
+        function icToggleCell(r, c) {
+            icShapeCells[r][c] = !icShapeCells[r][c];
+            // keep at least one cell active
+            if (!icShapeCells.flat().some(Boolean)) icShapeCells[r][c] = true;
+            icRenderShape();
+            icUpdatePreview();
+        }
+
+        function icRenderShape() {
+            const grid = document.getElementById('ic-shape-grid');
+            grid.style.gridTemplateColumns = `repeat(${icShapeW}, 34px)`;
+            let html = '';
+            for (let r = 0; r < icShapeH; r++) {
+                for (let c = 0; c < icShapeW; c++) {
+                    const filled = icShapeCells[r][c];
+                    html += `<div class="shape-cell ${filled?'filled':''}" onclick="icToggleCell(${r},${c})" title="Row ${r+1}, Col ${c+1}"></div>`;
+                }
+            }
+            grid.innerHTML = html;
+        }
+
+        // ── Effect type toggles ─────────────────────────────────────────────
+
+        function icRefreshHasCombat() {
+            const has = document.getElementById('ic-has-combat').checked;
+            document.getElementById('ic-combat-section').style.display = has ? 'block' : 'none';
+            icUpdatePreview();
+        }
+        function icRefreshHasPassive() {
+            const has = document.getElementById('ic-has-passive').checked;
+            document.getElementById('ic-passive-section').style.display = has ? 'block' : 'none';
+            icUpdatePreview();
+        }
+        function icRefreshHasActivation() {
+            const has = document.getElementById('ic-has-activation').checked;
+            document.getElementById('ic-activation-section').style.display = has ? 'block' : 'none';
+            icUpdatePreview();
+        }
+        function icRefreshHasShape() {
+            const has = document.getElementById('ic-has-shape').checked;
+            document.getElementById('ic-shape-section').style.display = has ? 'block' : 'none';
+            icUpdatePreview();
+        }
+
+        // ── Apply Status builder (reusable) ─────────────────────────────────
+
+        function applyStatusHtml(prefix) {
+            return `
+            <div class="form-group">
+                <label>Apply Status Effect</label>
+                <select id="${prefix}-status-id" onchange="icUpdatePreview(); icToggleStatusMag('${prefix}')">${statusOptionsHtml('')}</select>
+                <div class="help-text">★ = requires magnitude</div>
+            </div>
+            <div id="${prefix}-status-extra" style="display:none;">
+                <div class="inline-group" style="margin-top:8px;">
+                    <div class="form-group">
+                        <label>Magnitude</label>
+                        <input type="number" id="${prefix}-status-mag" value="1" min="1" onchange="icUpdatePreview()">
+                    </div>
+                    <div class="form-group">
+                        <label>Chance (0-1)</label>
+                        <input type="number" id="${prefix}-status-chance" value="1" min="0" max="1" step="0.05" onchange="icUpdatePreview()">
+                    </div>
+                </div>
+                <div class="inline-group">
+                    <div class="form-group">
+                        <label>Duration (combat rounds)</label>
+                        <input type="number" id="${prefix}-status-rounds" placeholder="e.g. 3" onchange="icUpdatePreview()">
+                    </div>
+                    <div class="form-group">
+                        <label>Duration (days)</label>
+                        <input type="number" id="${prefix}-status-days" placeholder="e.g. 2" onchange="icUpdatePreview()">
+                    </div>
+                </div>
+            </div>`;
+        }
+
+        function icToggleStatusMag(prefix) {
+            const id = document.getElementById(`${prefix}-status-id`).value;
+            const s = IC_STATUS_EFFECTS.find(x => x.id === id);
+            document.getElementById(`${prefix}-status-extra`).style.display = id ? 'block' : 'none';
+            const magEl = document.getElementById(`${prefix}-status-mag`);
+            if (magEl) magEl.style.display = (s && s.hasMag) ? 'block' : 'none';
+        }
+
+        function icToggleRemoveStatus(prefix) {
+            const has = document.getElementById(`${prefix}-has-remove`).checked;
+            document.getElementById(`${prefix}-remove-section`).style.display = has ? 'block' : 'none';
+            icUpdatePreview();
+        }
+
+        function removeStatusHtml(prefix) {
+            return `
+            <div class="form-group" style="margin-top:10px;">
+                <label><input type="checkbox" id="${prefix}-has-remove" onchange="icToggleRemoveStatus('${prefix}')"> Remove Status Effect</label>
+            </div>
+            <div id="${prefix}-remove-section" style="display:none;">
+                <div class="inline-group">
+                    <div class="form-group">
+                        <label>Specific Effect ID (optional)</label>
+                        <input type="text" id="${prefix}-remove-specific" placeholder="e.g. poisoned" onchange="icUpdatePreview()">
+                    </div>
+                    <div class="form-group">
+                        <label>Remove N random effects</label>
+                        <input type="number" id="${prefix}-remove-count" min="1" placeholder="1" onchange="icUpdatePreview()">
+                    </div>
+                </div>
+            </div>`;
+        }
+
+        // ── Conditional Combat Effects ──────────────────────────────────────
+
+        let icCondCounter = 0;
+
+        function icAddConditionalEffect() {
+            const id = ++icCondCounter;
+            const condTargetOptions = ['self','allyRandom','allyAll','enemyRandom','enemyAll','mainTarget'].map(t =>
+                `<option value="${t}">${t}</option>`).join('');
+
+            const html = `
+            <div class="cond-effect-item" id="ic-cond-${id}">
+                <div class="item-header">
+                    <span class="item-title">Conditional Effect #${id}</span>
+                    <button class="btn btn-danger btn-sm" onclick="document.getElementById('ic-cond-${id}').remove(); icUpdatePreview()">Remove</button>
+                </div>
+
+                <div class="form-group">
+                    <label>Description (tooltip text, optional)</label>
+                    <input type="text" id="ic-cond-${id}-desc" placeholder="e.g. Explodes if enemy is burning" onchange="icUpdatePreview()">
+                </div>
+
+                <!-- CONDITION -->
+                <div class="form-group">
+                    <label>Condition Type</label>
+                    <select id="ic-cond-${id}-type" onchange="icRefreshCondFields(${id})">
+                        <option value="random">random – X% chance</option>
+                        <option value="targetHpBelow">targetHpBelow – target HP%</option>
+                        <option value="targetSanityBelow">targetSanityBelow – target Sanity%</option>
+                        <option value="selfHpBelow">selfHpBelow – self HP%</option>
+                        <option value="selfSanityBelow">selfSanityBelow – self Sanity%</option>
+                        <option value="targetAttack">targetAttack – target ATK value</option>
+                        <option value="targetDefense">targetDefense – target DEF value</option>
+                        <option value="selfAttack">selfAttack – self ATK value</option>
+                        <option value="selfDefense">selfDefense – self DEF value</option>
+                        <option value="targetHasStatus">targetHasStatus – target has status</option>
+                        <option value="selfHasStatus">selfHasStatus – self has status</option>
+                    </select>
+                </div>
+                <div class="cond-fields" id="ic-cond-${id}-fields">
+                    <!-- filled by icRefreshCondFields -->
+                </div>
+
+                <!-- EFFECT -->
+                <div style="margin-top:12px; padding-top:10px; border-top:1px solid #475569;">
+                    <strong style="color:#a5b4fc;">Effect</strong>
+                    <div class="inline-group" style="margin-top:8px;">
+                        <div class="form-group">
+                            <label>Target</label>
+                            <select id="ic-cond-${id}-eff-target" onchange="icUpdatePreview()">${condTargetOptions}</select>
+                        </div>
+                        <div class="form-group">
+                            <label>HP Delta min</label>
+                            <input type="number" id="ic-cond-${id}-eff-hp-min" placeholder="e.g. -8" onchange="icUpdatePreview()">
+                        </div>
+                        <div class="form-group">
+                            <label>HP Delta max</label>
+                            <input type="number" id="ic-cond-${id}-eff-hp-max" placeholder="e.g. -4" onchange="icUpdatePreview()">
+                        </div>
+                    </div>
+                    <div class="inline-group">
+                        <div class="form-group">
+                            <label>Sanity Delta min</label>
+                            <input type="number" id="ic-cond-${id}-eff-san-min" placeholder="e.g. -5" onchange="icUpdatePreview()">
+                        </div>
+                        <div class="form-group">
+                            <label>Sanity Delta max</label>
+                            <input type="number" id="ic-cond-${id}-eff-san-max" placeholder="e.g. -2" onchange="icUpdatePreview()">
+                        </div>
+                    </div>
+                    ${applyStatusHtml(`ic-cond-${id}-eff`)}
+                    ${removeStatusHtml(`ic-cond-${id}-eff`)}
+                </div>
+            </div>`;
+            document.getElementById('ic-cond-effects').insertAdjacentHTML('beforeend', html);
+            icRefreshCondFields(id);
+            icUpdatePreview();
+        }
+
+        function icRefreshCondFields(id) {
+            const type = document.getElementById(`ic-cond-${id}-type`).value;
+            const container = document.getElementById(`ic-cond-${id}-fields`);
+            let html = '';
+            if (type === 'random') {
+                html = `<div class="form-group"><label>Chance (0–1)</label>
+                    <input type="number" id="ic-cond-${id}-chance" value="0.2" min="0" max="1" step="0.05" onchange="icUpdatePreview()"></div>`;
+            } else if (['targetHpBelow','targetSanityBelow','selfHpBelow','selfSanityBelow'].includes(type)) {
+                html = `<div class="inline-group">
+                    <div class="form-group"><label>Operator</label>
+                        <select id="ic-cond-${id}-op" onchange="icUpdatePreview()">
+                            <option value="<=">≤ (at or below)</option>
+                            <option value=">=">≥ (at or above)</option>
+                        </select></div>
+                    <div class="form-group"><label>Percentage (0–100)</label>
+                        <input type="number" id="ic-cond-${id}-pct" value="50" min="0" max="100" onchange="icUpdatePreview()"></div>
+                </div>`;
+            } else if (['targetAttack','targetDefense','selfAttack','selfDefense'].includes(type)) {
+                html = `<div class="inline-group">
+                    <div class="form-group"><label>Operator</label>
+                        <select id="ic-cond-${id}-op" onchange="icUpdatePreview()">
+                            <option value="<=">≤</option>
+                            <option value=">=">≥</option>
+                        </select></div>
+                    <div class="form-group"><label>Value</label>
+                        <input type="number" id="ic-cond-${id}-val" value="10" onchange="icUpdatePreview()"></div>
+                </div>`;
+            } else if (['targetHasStatus','selfHasStatus'].includes(type)) {
+                html = `<div class="form-group"><label>Status Effect ID</label>
+                    <select id="ic-cond-${id}-status" onchange="icUpdatePreview()">${statusOptionsHtml('')}</select></div>`;
+            }
+            container.innerHTML = html;
+        }
+
+        // ── Build condition object ──────────────────────────────────────────
+        function icBuildCondition(id) {
+            const type = document.getElementById(`ic-cond-${id}-type`).value;
+            if (type === 'random') {
+                const chance = parseFloat(document.getElementById(`ic-cond-${id}-chance`)?.value || 0.2);
+                return { type:'random', chance };
+            }
+            if (['targetHpBelow','targetSanityBelow','selfHpBelow','selfSanityBelow'].includes(type)) {
+                const op  = document.getElementById(`ic-cond-${id}-op`)?.value  || '<=';
+                const pct = parseFloat(document.getElementById(`ic-cond-${id}-pct`)?.value || 50);
+                return { type, operator: op, percentage: pct };
+            }
+            if (['targetAttack','targetDefense','selfAttack','selfDefense'].includes(type)) {
+                const op  = document.getElementById(`ic-cond-${id}-op`)?.value  || '<=';
+                const val = parseFloat(document.getElementById(`ic-cond-${id}-val`)?.value || 10);
+                return { type, operator: op, value: val };
+            }
+            if (['targetHasStatus','selfHasStatus'].includes(type)) {
+                const sid = document.getElementById(`ic-cond-${id}-status`)?.value || '';
+                return { type, statusEffectId: sid };
+            }
+            return { type };
+        }
+
+        // ── Build applyStatus object ─────────────────────────────────────────
+        function icBuildApplyStatus(prefix) {
+            const id = document.getElementById(`${prefix}-status-id`)?.value;
+            if (!id) return undefined;
+            const obj = { id };
+            const mag   = document.getElementById(`${prefix}-status-mag`)?.value;
+            const chance= document.getElementById(`${prefix}-status-chance`)?.value;
+            const rounds= document.getElementById(`${prefix}-status-rounds`)?.value;
+            const days  = document.getElementById(`${prefix}-status-days`)?.value;
+            if (mag   && parseFloat(mag)   !== 0) obj.magnitude            = parseFloat(mag);
+            if (chance&& parseFloat(chance)!== 1) obj.chance               = parseFloat(chance);
+            if (rounds&& rounds !== '')           obj.durationInCombatRounds = parseInt(rounds);
+            if (days  && days   !== '')           obj.durationInDays        = parseInt(days);
+            return obj;
+        }
+
+        // ── Build removeStatus object ────────────────────────────────────────
+        function icBuildRemoveStatus(prefix) {
+            const hasRemove = document.getElementById(`${prefix}-has-remove`)?.checked;
+            if (!hasRemove) return undefined;
+            const specific = document.getElementById(`${prefix}-remove-specific`)?.value?.trim();
+            const count    = document.getElementById(`${prefix}-remove-count`)?.value;
+            const obj = {};
+            if (specific) obj.specificEffectId = specific;
+            if (count && parseInt(count) > 0) obj.countRandomEffectsToRemove = parseInt(count);
+            if (!specific && !count) return undefined;
+            return obj;
+        }
+
+        // ── Main item builder ────────────────────────────────────────────────
+        function icBuildItem() {
+            const item = {};
+
+            const id   = document.getElementById('ic-id')?.value?.trim();
+            const name = document.getElementById('ic-name')?.value?.trim();
+            if (!id || !name) return null;
+
+            item.id          = id;
+            item.name        = name;
+            item.description = document.getElementById('ic-description')?.value?.trim() || '';
+            item.type        = document.getElementById('ic-type')?.value || 'misc';
+            item.width       = parseInt(document.getElementById('ic-width')?.value  || 1);
+            item.height      = parseInt(document.getElementById('ic-height')?.value || 1);
+            item.value       = parseInt(document.getElementById('ic-value')?.value  || 0);
+            item.rarity      = document.getElementById('ic-rarity')?.value || undefined;
+            if (!item.rarity) delete item.rarity;
+            item.icon        = document.getElementById('ic-icon')?.value?.trim() || '"YOUR_ICON_PATH"';
+
+            // combatCategory
+            const cc = document.getElementById('ic-combat-cat')?.value;
+            if (cc) item.combatCategory = cc;
+
+            // maxCharges
+            const mc = document.getElementById('ic-max-charges')?.value?.trim();
+            if (mc && parseInt(mc) > 0) { item.maxCharges = parseInt(mc); item.currentCharges = parseInt(mc); }
+
+            // tags
+            const tags = [...document.querySelectorAll('.ic-tag-cb:checked')].map(el => el.value);
+            if (tags.length) item.tags = tags;
+
+            // supplyCategories
+            const sc = document.getElementById('ic-supply-cats')?.value?.trim();
+            if (sc) item.supplyCategories = sc.split(',').map(s => s.trim()).filter(Boolean);
+
+            // shape (only if non-rectangular)
+            const hasShape = document.getElementById('ic-has-shape')?.checked;
+            const isAllFilled = icShapeCells.flat().every(Boolean);
+            if (hasShape && !isAllFilled) {
+                item.shape = icShapeCells.map(row => [...row]);
+            }
+
+            // passive effect
+            if (document.getElementById('ic-has-passive')?.checked) {
+                const passive = {};
+                const fields = ['maxHp','maxSanity','baseAttack','baseDefense','initiative'];
+                fields.forEach(f => {
+                    const v = document.getElementById(`ic-passive-${f}`)?.value?.trim();
+                    if (v !== '' && v !== undefined && !isNaN(parseFloat(v))) passive[f] = parseFloat(v);
+                });
+                if (Object.keys(passive).length) item.passiveEffect = passive;
+            }
+
+            // combat effect
+            if (document.getElementById('ic-has-combat')?.checked) {
+                const target = document.getElementById('ic-ce-target')?.value;
+                const consume = document.getElementById('ic-ce-consume')?.value;
+                const ce = { target };
+
+                const hpMin = document.getElementById('ic-ce-hp-min')?.value?.trim();
+                const hpMax = document.getElementById('ic-ce-hp-max')?.value?.trim();
+                if (hpMin !== '' && hpMax !== '') ce.hpDelta = { min: parseFloat(hpMin), max: parseFloat(hpMax) };
+
+                const sanMin = document.getElementById('ic-ce-san-min')?.value?.trim();
+                const sanMax = document.getElementById('ic-ce-san-max')?.value?.trim();
+                if (sanMin !== '' && sanMax !== '') ce.sanityDelta = { min: parseFloat(sanMin), max: parseFloat(sanMax) };
+
+                const applyStatus = icBuildApplyStatus('ic-ce');
+                if (applyStatus) ce.applyStatus = applyStatus;
+
+                const removeStatus = icBuildRemoveStatus('ic-ce');
+                if (removeStatus) ce.removeStatus = removeStatus;
+
+                if (consume !== '') ce.consumeOnUse = consume === 'true';
+
+                item.combatEffect = ce;
+            }
+
+            // conditional combat effects
+            const condItems = document.querySelectorAll('[id^="ic-cond-"]');
+            const condIds = new Set();
+            condItems.forEach(el => {
+                const m = el.id.match(/^ic-cond-(\d+)$/);
+                if (m) condIds.add(parseInt(m[1]));
+            });
+            const condEffects = [];
+            condIds.forEach(cid => {
+                const condition = icBuildCondition(cid);
+                const eff = {};
+                eff.target = document.getElementById(`ic-cond-${cid}-eff-target`)?.value || 'mainTarget';
+
+                const hpMin = document.getElementById(`ic-cond-${cid}-eff-hp-min`)?.value?.trim();
+                const hpMax = document.getElementById(`ic-cond-${cid}-eff-hp-max`)?.value?.trim();
+                if (hpMin !== '' && hpMax !== '') eff.hpDelta = { min: parseFloat(hpMin), max: parseFloat(hpMax) };
+
+                const sanMin = document.getElementById(`ic-cond-${cid}-eff-san-min`)?.value?.trim();
+                const sanMax = document.getElementById(`ic-cond-${cid}-eff-san-max`)?.value?.trim();
+                if (sanMin !== '' && sanMax !== '') eff.sanityDelta = { min: parseFloat(sanMin), max: parseFloat(sanMax) };
+
+                const applyStatus = icBuildApplyStatus(`ic-cond-${cid}-eff`);
+                if (applyStatus) eff.applyStatus = applyStatus;
+
+                const removeStatus = icBuildRemoveStatus(`ic-cond-${cid}-eff`);
+                if (removeStatus) eff.removeStatus = removeStatus;
+
+                const desc = document.getElementById(`ic-cond-${cid}-desc`)?.value?.trim();
+                const entry = { condition, effect: eff };
+                if (desc) entry.description = desc;
+                condEffects.push(entry);
+            });
+            if (condEffects.length) item.conditionalCombatEffects = condEffects;
+
+            // activation effect
+            if (document.getElementById('ic-has-activation')?.checked) {
+                const ae = {};
+                ae.target = document.getElementById('ic-ae-target')?.value || 'self';
+
+                const hpMin = document.getElementById('ic-ae-hp-min')?.value?.trim();
+                const hpMax = document.getElementById('ic-ae-hp-max')?.value?.trim();
+                if (hpMin !== '' && hpMax !== '') ae.hpDelta = { min: parseFloat(hpMin), max: parseFloat(hpMax) };
+
+                const sanMin = document.getElementById('ic-ae-san-min')?.value?.trim();
+                const sanMax = document.getElementById('ic-ae-san-max')?.value?.trim();
+                if (sanMin !== '' && sanMax !== '') ae.sanityDelta = { min: parseFloat(sanMin), max: parseFloat(sanMax) };
+
+                const applyStatus = icBuildApplyStatus('ic-ae');
+                if (applyStatus) ae.applyStatus = applyStatus;
+
+                const removeStatus = icBuildRemoveStatus('ic-ae');
+                if (removeStatus) ae.removeStatus = removeStatus;
+
+                const consume = document.getElementById('ic-ae-consume')?.value;
+                if (consume !== '') ae.consumeOnUse = consume === 'true';
+
+                item.activationEffect = ae;
+            }
+
+            return item;
+        }
+
+        function icUpdatePreview() {
+            const item = icBuildItem();
+            const pre = document.getElementById('ic-json-preview');
+            if (!item) {
+                pre.textContent = '// Fill in at least "id" and "name" to see the output.';
+                return;
+            }
+            pre.textContent = icFormatItemTs(item);
+        }
+
+        function icFormatItemTs(item) {
+            // Produce a TypeScript-ready defineWeapon/defineItem snippet
+            const typeHelper = item.type === 'weapon' ? 'defineWeapon' : 'defineItem';
+            const json = JSON.stringify(item, null, 2)
+                // replace icon string with variable reference hint
+                .replace(/"icon": "([^"]+)"/, (_, v) => {
+                    if (v === '"YOUR_ICON_PATH"' || v.startsWith('"')) return `"icon": "${v}"`;
+                    return `"icon": ${v}Img`;
+                });
+            return `// ── Add this to the appropriate items/*.ts file ──\n\nexport const ${icCamelCase(item.id)}: BaseItem = ${typeHelper}(${json}\n)`;
+        }
+
+        function icCamelCase(str) {
+            return str.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
+        }
+
+        function icCopyCode() {
+            const text = document.getElementById('ic-json-preview').textContent;
+            navigator.clipboard.writeText(text).then(() => showNotification('✅ Item code copied!'));
+        }
+
+        function icClearForm() {
+            if (!confirm('Clear the Item Creator form?')) return;
+            document.querySelectorAll('#tab-item input, #tab-item select, #tab-item textarea').forEach(el => {
+                if (el.type === 'checkbox') el.checked = false;
+                else if (el.tagName === 'SELECT') el.selectedIndex = 0;
+                else el.value = '';
+            });
+            document.getElementById('ic-cond-effects').innerHTML = '';
+            icCondCounter = 0;
+            icInitShape(1, 1);
+            icRefreshHasCombat();
+            icRefreshHasPassive();
+            icRefreshHasActivation();
+            icRefreshHasShape();
+            icUpdatePreview();
+        }
+
+        // Initialize Item Creator
+        icInitShape(1, 1);
+        // Inject apply/remove status widgets into static sections
+        document.getElementById('ic-ce-status-wrap').innerHTML = applyStatusHtml('ic-ce');
+        document.getElementById('ic-ce-remove-wrap').innerHTML = removeStatusHtml('ic-ce');
+        document.getElementById('ic-ae-status-wrap').innerHTML = applyStatusHtml('ic-ae');
+        document.getElementById('ic-ae-remove-wrap').innerHTML = removeStatusHtml('ic-ae');
+        icUpdatePreview();
     </script>
 </body>
 </html>
